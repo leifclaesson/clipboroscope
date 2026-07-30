@@ -1,0 +1,25 @@
+Clipboroscope -- License
+Copyright (C) 2026 Leif Claesson. All rights reserved.
+
+Free to use.
+Clipboroscope is free to use, for both personal and commercial purposes.
+No fee, no account, no registration, no telemetry.
+
+You may:
+  * Use it on as many of your own machines as you like.
+  * Point other people to the official download page.
+
+You may not:
+  * Decompile, disassemble, reverse-engineer, or otherwise attempt to
+    recover the source code.
+  * Sell, rent, sublicense, or bundle it into a paid product.
+  * Host, mirror, repackage, or otherwise redistribute the binaries.
+    Link people to the official download page instead.
+
+Closed source.
+The source code is not public and is not included in this release.
+
+No warranty.
+Clipboroscope is provided "as is", without warranty of any kind, express or
+implied. You use it at your own risk. In no event shall the author be
+liable for any damages arising from its use.

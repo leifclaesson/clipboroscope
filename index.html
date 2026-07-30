@@ -1,0 +1,679 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CLIPBOROSCOPE.EXE &mdash; Clipboard Observation Instrument</title>
+<style>
+  :root{
+    /* ---- Luna (Windows XP default blue) palette ---- */
+    --face:#ece9d8;            /* silver/beige control face */
+    --face-lt:#faf9f4;
+    --face-dk:#d4d0c4;
+    --frame:#0054e3;           /* window frame / active blue */
+    --frame-dk:#003bb3;
+    --hi:#ffffff;              /* bevel highlight */
+    --sh:#aca899;              /* bevel shadow (light) */
+    --sh2:#716f64;             /* bevel shadow (dark) */
+    --ink:#101010;
+    --ink-dim:#55524a;
+    --sel:#316ac5;             /* Luna selection blue */
+    --sel-lt:#3d95ff;
+    --green:#4e9b3a;           /* Start-button green */
+    --green-dk:#2f7d24;
+    --amber-bg:#ffffe1;        /* XP tooltip / info yellow */
+    --amber-ln:#c0b96a;
+    --link:#0033cc;
+    --ui: Tahoma, "MS Sans Serif", "Segoe UI", Verdana, Geneva, sans-serif;
+    /* Faithful Luna active-caption vertical gradient */
+    --titlebar:linear-gradient(180deg,
+       #0058ee 0%, #3593ff 4%, #288eff 6%, #127dff 8%, #036ffc 10%,
+       #0262ee 14%, #0057e5 20%, #0054e3 24%, #0055eb 56%, #005bff 76%,
+       #026aff 82%, #027dff 88%, #0284ff 92%, #027fff 95%, #0271f6 100%);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{
+    background:
+      linear-gradient(180deg,#3a7bd5 0%, #6aa6e0 42%, #a9d38f 58%, #6ba741 78%, #4f9233 100%);
+    background-attachment:fixed;
+    color:var(--ink); font-family:var(--ui); font-size:12px; line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+    padding:clamp(0px,3vw,30px);
+  }
+  a{color:var(--link)}
+  code{font-family:"Lucida Console","Courier New",monospace; font-size:11px;
+    background:#fff; border:1px solid var(--sh); padding:0 3px; border-radius:2px}
+  em{font-style:italic}
+
+  /* ============ the main XP window ============ */
+  .window{
+    max-width:1060px; margin:0 auto;
+    background:var(--face);
+    border:3px solid var(--frame);
+    border-top:0;
+    border-radius:9px 9px 4px 4px;
+    box-shadow:0 12px 40px -8px rgba(0,0,0,.55), 0 2px 8px rgba(0,0,0,.3);
+    overflow:hidden;
+  }
+
+  /* ---- Luna title bar ---- */
+  .titlebar{
+    position:sticky; top:0; z-index:40;
+    display:flex; align-items:center; gap:7px;
+    height:30px; padding:0 4px 0 6px;
+    background:var(--titlebar);
+    border-radius:6px 6px 0 0;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.45), inset 0 -1px 0 rgba(0,0,0,.25);
+  }
+  .titlebar .ico{
+    flex:0 0 auto; width:17px; height:17px; border-radius:3px;
+    background:radial-gradient(circle at 35% 30%, #d6ecff, #3f8be0 55%, #123f86);
+    border:1px solid #0a2c66; box-shadow:inset 0 1px 0 rgba(255,255,255,.6);
+    display:grid; place-items:center; color:#fff; font-size:11px; line-height:1;
+    text-shadow:0 1px 1px rgba(0,0,0,.5);
+  }
+  .titlebar .ttl{
+    flex:1 1 auto; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+    color:#fff; font-weight:700; font-size:13px; letter-spacing:.01em;
+    text-shadow:1px 1px 2px rgba(0,0,0,.55);
+  }
+  .titlebar .ttl b{font-weight:700}
+  .winbtns{flex:0 0 auto; display:flex; gap:2px}
+  .winbtn{
+    width:22px; height:21px; border-radius:3px; padding:0;
+    border:1px solid rgba(255,255,255,.65);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.7), inset 0 -2px 3px rgba(0,0,0,.25);
+    color:#fff; font-family:var(--ui); font-size:11px; font-weight:700; line-height:1;
+    display:grid; place-items:center; cursor:default;
+    text-shadow:0 1px 1px rgba(0,0,0,.5);
+  }
+  .winbtn.grey{background:linear-gradient(180deg,#5b9bf0,#2f6fd6 48%,#1f5ec4 52%,#3d81e6)}
+  .winbtn.close{background:linear-gradient(180deg,#f6a58c,#e05a3d 45%,#cf3319 55%,#e2765c);
+    border-color:rgba(255,220,210,.8)}
+  .winbtn:active{box-shadow:inset 0 2px 4px rgba(0,0,0,.4)}
+
+  /* window body */
+  .body{padding:0}
+  .wrap{padding:0 clamp(14px,3.2vw,30px)}
+
+  /* ---- generic XP surfaces ---- */
+  .sunken{ background:#fff;
+    border-top:2px solid var(--sh2); border-left:2px solid var(--sh2);
+    border-right:2px solid var(--hi); border-bottom:2px solid var(--hi); }
+  .group{
+    border:2px groove var(--face);
+    border-radius:2px; margin:0; padding:16px clamp(12px,2.4vw,20px) 18px;
+    position:relative; background:var(--face);
+  }
+  .group > .legend{
+    position:absolute; top:-9px; left:12px; padding:0 6px; background:var(--face);
+    font-weight:700; color:#0a3d91; font-size:12px; letter-spacing:.01em;
+  }
+
+  /* ============ hero ============ */
+  section{padding:clamp(26px,4vw,44px) 0}
+  .hero{padding:clamp(20px,3.5vw,40px) 0 clamp(18px,3vw,32px)}
+  .hero-grid{
+    display:grid; grid-template-columns:1.15fr .85fr; gap:clamp(20px,4vw,44px);
+    align-items:center;
+  }
+  .kicker{
+    display:inline-block; font-size:11px; letter-spacing:.02em;
+    color:#0a3d91; background:#dfe8f7; border:1px solid #9db8e0; border-radius:2px;
+    padding:2px 8px; margin:0 0 14px;
+  }
+  h1.word{
+    font-weight:700; margin:0; font-size:clamp(28px,6vw,54px); line-height:1.02;
+    letter-spacing:-.01em; color:#1a1a1a; text-shadow:1px 1px 0 #fff;
+  }
+  h1.word .ext{color:var(--frame)}
+  .subtitle{color:var(--ink-dim); margin:10px 0 0; font-size:13px; font-weight:700}
+  .tagline{font-size:clamp(15px,2vw,19px); margin:18px 0 0; color:#1a1a1a; font-weight:700}
+  .lead{color:var(--ink-dim); margin:12px 0 0; max-width:48ch; font-size:12.5px; line-height:1.55}
+  .cta{display:flex; flex-wrap:wrap; gap:12px 16px; align-items:center; margin-top:24px}
+  .btn{
+    display:inline-flex; align-items:center; gap:9px; text-decoration:none;
+    color:#fff; font-weight:700; font-size:14px; padding:11px 22px; border-radius:6px;
+    background:linear-gradient(180deg,#8fd06e 0%,#5aa73f 45%,#4a9633 55%,#387d24 100%);
+    border:1px solid #2b6a1f;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.65), inset 0 -8px 12px -8px rgba(0,0,0,.4),
+      0 3px 6px -2px rgba(0,0,0,.4);
+    text-shadow:0 1px 1px rgba(0,0,0,.45); cursor:default;
+  }
+  .btn:hover{filter:brightness(1.05)}
+  .btn:active{box-shadow:inset 0 2px 6px rgba(0,0,0,.4); transform:translateY(1px)}
+  .btn .arw{font-weight:700}
+  .btn.ghost{
+    color:var(--ink); background:linear-gradient(180deg,var(--face-lt),var(--face));
+    border:1px solid #fff; box-shadow:inset 0 0 0 1px var(--sh), 1px 1px 2px rgba(0,0,0,.12);
+    text-shadow:none;
+  }
+  .btn.ghost:hover{box-shadow:inset 0 0 0 1px var(--sel), 0 0 0 1px var(--sel)}
+  .fineprint{color:var(--ink-dim); font-size:11px}
+
+  /* ---- download section ---- */
+  .dl-card{text-align:center}
+  .dl-card h2{margin:6px 0 8px}
+  .dl-card p{color:var(--ink-dim); max-width:52ch; margin:0 auto}
+  .dl-btns{display:flex; flex-wrap:wrap; gap:12px; justify-content:center; margin-top:18px}
+
+  /* specimen display case (jar) */
+  .jar-frame{
+    max-width:340px; margin-inline:auto; padding:14px; background:var(--face);
+    border:2px groove var(--face); border-radius:2px;
+  }
+  .jar{
+    position:relative; aspect-ratio:1/1; width:100%;
+    display:grid; place-items:center; padding:14px;
+    background:#fff;
+    border-top:2px solid var(--sh2); border-left:2px solid var(--sh2);
+    border-right:2px solid var(--hi); border-bottom:2px solid var(--hi);
+  }
+  .jar img{width:84%; filter:drop-shadow(0 6px 10px rgba(0,0,0,.28))}
+  .placard{
+    position:absolute; bottom:9px; left:50%; transform:translateX(-50%);
+    font-size:11px; letter-spacing:.02em;
+    color:#3a3a1a; background:var(--amber-bg); border:1px solid var(--amber-ln);
+    padding:3px 10px; border-radius:2px; white-space:nowrap;
+    box-shadow:1px 1px 2px rgba(0,0,0,.2);
+  }
+
+  /* ---- caution / info bar (XP information bar) ---- */
+  .caution{
+    margin:clamp(16px,3vw,26px) 0 0;
+    background:var(--amber-bg); border:1px solid var(--amber-ln); border-radius:2px;
+    color:#4a4413; font-size:12px; overflow:hidden;
+    box-shadow:inset 0 1px 0 #fff;
+  }
+  .caution .run{display:flex; gap:12px 30px; padding:9px 14px; flex-wrap:wrap; align-items:center}
+  .caution .wi{
+    flex:0 0 auto; width:18px; height:18px; border-radius:50%;
+    background:radial-gradient(circle at 40% 35%,#ffe98a,#f2b705 70%); border:1px solid #b78a00;
+    display:grid; place-items:center; color:#5a4600; font-weight:900; font-size:12px;
+  }
+  .caution b{color:#3a3400; font-weight:700}
+
+  /* ---- content sections ---- */
+  .eyebrow{display:inline-block; font-size:11px; letter-spacing:.02em; font-weight:700;
+    color:#0a3d91; margin:0 0 8px}
+  h2{font-size:clamp(19px,2.8vw,26px); margin:0 0 8px; color:#15294f; letter-spacing:-.01em}
+  .section-lead{color:var(--ink-dim); margin:0 0 22px; max-width:62ch; font-size:12.5px}
+
+  .feat{display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:14px}
+  .card{
+    background:linear-gradient(180deg,var(--face-lt),var(--face));
+    border:1px solid #fff; border-radius:3px; padding:16px 16px 18px;
+    box-shadow:inset 0 0 0 1px var(--sh), 1px 1px 3px rgba(0,0,0,.14);
+  }
+  .card .ico{
+    display:inline-grid; place-items:center; width:34px; height:34px; border-radius:4px;
+    margin-bottom:11px; font-size:17px; line-height:1; color:#0a3d91;
+    background:linear-gradient(180deg,#f4f8ff,#c9ddf7);
+    border:1px solid #8fb0dd; box-shadow:inset 0 1px 0 #fff;
+  }
+  .card h3{margin:0 0 5px; font-size:13.5px; color:#15294f}
+  .card p{margin:0; color:var(--ink-dim); font-size:12px}
+
+  /* ============ rotating specimen case ============ */
+  .case{ display:flex; align-items:stretch;
+    border-top:2px solid var(--sh2); border-left:2px solid var(--sh2);
+    border-right:2px solid var(--hi); border-bottom:2px solid var(--hi);
+    background:var(--face); position:relative }
+  .case-viewport{ position:relative; flex:1 1 auto; min-width:0; display:flex; flex-direction:column }
+  .case-stage{ position:relative; aspect-ratio:1899/1207; background:#0b0f14;
+    border:2px solid #6f6a5c; border-top-color:#3a382f; border-left-color:#3a382f;
+    margin:8px 8px 0 }
+  .case-slide{ position:absolute; inset:0; opacity:0; transition:opacity .8s ease; pointer-events:none }
+  .case-slide.active{ opacity:1; pointer-events:auto }
+  .case-slide img{ display:block; width:100%; height:100%; object-fit:contain }
+
+  /* transport: play / pause + live status (top-right overlay, XP toolbar strip) */
+  .case-controls{ position:absolute; top:14px; right:14px; z-index:6;
+    display:flex; align-items:center; gap:7px;
+    background:var(--face); padding:4px 5px; border-radius:3px;
+    border:1px solid #fff; box-shadow:inset 0 0 0 1px var(--sh), 1px 1px 3px rgba(0,0,0,.25) }
+  .case-status{ font-size:11px; font-weight:700; letter-spacing:.01em; color:#0a3d91;
+    background:#fff; padding:2px 8px;
+    border-top:1px solid var(--sh2); border-left:1px solid var(--sh2);
+    border-right:1px solid var(--hi); border-bottom:1px solid var(--hi);
+    transition:color .25s ease }
+  .case-status.paused{ color:#a8420b }
+  .case-toggle{ display:grid; place-items:center; width:26px; height:22px; padding:0;
+    color:#15294f; font-size:11px; line-height:1; cursor:default; letter-spacing:1px;
+    background:linear-gradient(180deg,#fdfdfd,#e3e0d3); border:1px solid #808080; border-radius:3px;
+    box-shadow:inset 1px 1px 0 #fff, inset -1px -1px 0 #b0ac9c }
+  .case-toggle:hover{ background:linear-gradient(180deg,#ffffff,#e9e6da) }
+  .case-toggle:active{ box-shadow:inset 1px 1px 0 #808080, inset -1px -1px 0 #fff;
+    background:linear-gradient(180deg,#ddd9cc,#eceada) }
+
+  .cap{ font-size:12px; color:var(--ink-dim); margin:0; padding:11px 14px 4px; letter-spacing:.01em }
+  #caseCap{ min-height:2.7em; transition:opacity .35s ease }
+
+  /* LED dot rail: one group per specimen pair, two dots (render / reveal) each */
+  .case-rail{ display:flex; flex-direction:column; gap:14px; justify-content:center; align-items:center;
+    padding:14px 12px; background:var(--face);
+    border-left:2px solid var(--sh2); overflow:auto }
+  .rail-group{ display:flex; flex-direction:column; gap:7px; align-items:center;
+    padding:6px 5px; border:1px solid var(--sh); border-radius:4px;
+    background:linear-gradient(180deg,#f6f4ec,#e6e3d6); box-shadow:inset 0 1px 0 #fff }
+  .case-dot{ position:relative; width:13px; height:13px; border-radius:50%; padding:0; cursor:default;
+    background:radial-gradient(circle at 40% 32%, #ffffff, #d0ccbd 62%, #9a9482);
+    border:1px solid #6f6a5c; box-shadow:inset 0 1px 1px rgba(255,255,255,.6);
+    transition:background .2s ease, transform .2s ease, box-shadow .2s ease, border-color .2s ease }
+  .case-dot:hover{ border-color:#0a3d91 }
+  .case-dot.near{ background:radial-gradient(circle at 40% 32%, #cfe6ff, #5a98e6 72%);
+    border-color:#2f6fd6 }
+  .case-dot.on{ background:radial-gradient(circle at 40% 32%, #eaf5ff, #1f6fe0 52%, #0b3f8f);
+    border-color:#0b3f8f; transform:scale(1.18);
+    box-shadow:0 0 9px 1px #3a9bff, inset 0 1px 1px rgba(255,255,255,.7) }
+
+  .rotate-note{ display:inline-block; font-size:11px; letter-spacing:.01em; font-weight:700;
+    color:#0a3d91; background:#dfe8f7; border:1px solid #9db8e0; border-radius:2px;
+    padding:2px 9px; margin-left:10px; white-space:nowrap; vertical-align:middle }
+
+  /* paired specimen: render <-> reveal toggle */
+  .case-layer{ position:absolute; inset:0; width:100%; height:100%; object-fit:contain;
+    opacity:0; transition:opacity .55s ease }
+  .case-badge{ position:absolute; left:14px; top:14px; z-index:4;
+    font-size:11px; font-weight:700; letter-spacing:.01em; padding:4px 10px; border-radius:2px;
+    border:1px solid var(--amber-ln); background:var(--amber-bg); color:#4a4413; opacity:0;
+    box-shadow:1px 1px 2px rgba(0,0,0,.25); transition:opacity .4s ease }
+  .case-badge.reveal{ color:#0a3d91; background:#dfe8f7; border-color:#7ea4dd }
+
+  /* ---- provenance / evidence ---- */
+  .evidence{
+    display:grid; grid-template-columns:1.2fr .8fr; gap:clamp(18px,3.5vw,36px); align-items:start;
+  }
+  .evidence p{color:var(--ink-dim); margin:0 0 12px; font-size:12.5px}
+  .evidence p b{color:#1a1a1a}
+  .stamp{ display:inline-block; color:#b12704; border:2px solid #d3654e; transform:rotate(-4deg);
+    border-radius:3px; padding:1px 8px; font-size:11px; font-weight:700; letter-spacing:.08em;
+    text-transform:uppercase; background:rgba(255,240,236,.6) }
+  .built{list-style:none; margin:0; padding:0; display:grid; gap:9px}
+  .built li{font-size:12.5px; color:#1a1a1a; display:flex; gap:9px; align-items:center}
+  .built li .ck{color:#2f7d24; font-weight:900}
+  .built li.q{color:var(--ink-dim)}
+
+  /* ---- family ---- */
+  .fam-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(172px,1fr)); gap:12px; margin-top:16px}
+  .fam{
+    position:relative; display:block; text-decoration:none; padding:14px 16px; border-radius:3px;
+    background:linear-gradient(180deg,var(--face-lt),var(--face));
+    border:1px solid #fff; box-shadow:inset 0 0 0 1px var(--sh), 1px 1px 2px rgba(0,0,0,.12);
+  }
+  .fam:hover{ box-shadow:inset 0 0 0 1px var(--sel), 0 0 0 1px var(--sel) }
+  .fam .n{font-weight:700; color:#15294f; font-size:13px}
+  .fam:hover .n{text-decoration:underline; color:var(--link)}
+  .fam.cur{ background:linear-gradient(180deg,#dce9ff,#c6dbff); }
+  .fam.cur .n{color:#0a3d91; margin-top:20px}
+  .fam .t{color:var(--ink-dim); font-size:12px; margin-top:3px}
+  .fam .badge{position:absolute; top:11px; right:12px; font-size:10px; color:#fff; font-weight:700;
+    background:var(--sel); border-radius:2px; padding:1px 6px; letter-spacing:.02em}
+  span.fam.soon{ opacity:.6; cursor:default }
+  span.fam.soon .badge{background:var(--sh2)}
+
+  /* ---- status-bar footer ---- */
+  footer.legal{
+    display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap;
+    padding:4px 6px; margin-top:clamp(20px,3vw,32px);
+    background:var(--face); border-top:1px solid #fff; color:var(--ink-dim); font-size:11px;
+  }
+  footer.legal span{
+    padding:3px 9px;
+    border-top:1px solid var(--sh2); border-left:1px solid var(--sh2);
+    border-right:1px solid var(--hi); border-bottom:1px solid var(--hi);
+    background:var(--face);
+  }
+  footer.legal .grip{ width:16px; height:14px; padding:0; border:0; background:
+    repeating-linear-gradient(135deg, transparent 0 2px, var(--sh2) 2px 3px, transparent 3px 4px, var(--hi) 4px 5px);
+    flex:0 0 auto }
+
+  /* ============ responsive ============ */
+  @media (max-width:760px){
+    .hero-grid{grid-template-columns:1fr; text-align:left}
+    .jar-frame{order:-1; max-width:260px}
+    .evidence{grid-template-columns:1fr}
+  }
+  /* narrow: rail drops below the stage as a horizontal, two-deep LED band.
+     Placed AFTER the base .case-rail rules so equal-specificity source order wins. */
+  @media (max-width:560px){
+    .case{ flex-direction:column }
+    .case-rail{ flex-direction:row; flex-wrap:wrap; gap:10px 14px;
+      border-left:none; border-top:2px solid var(--sh2); padding:12px }
+    .case-controls{ top:10px; right:10px }
+  }
+  @media (max-width:430px){
+    body{padding:0}
+    .window{border-radius:0; border-left-width:2px; border-right-width:2px}
+    h1.word{font-size:clamp(24px,9vw,34px)}
+  }
+</style>
+</head>
+<body>
+
+  <div class="window">
+
+    <div class="titlebar">
+      <span class="ico">&#9906;</span>
+      <span class="ttl"><b>CLIPBOROSCOPE.EXE</b> &mdash; Clipboard Observation Instrument</span>
+      <span class="winbtns">
+        <button class="winbtn grey" type="button" aria-label="Minimize" tabindex="-1">&minus;</button>
+        <button class="winbtn grey" type="button" aria-label="Maximize" tabindex="-1">&#9633;</button>
+        <button class="winbtn close" type="button" aria-label="Close" tabindex="-1">&times;</button>
+      </span>
+    </div>
+
+    <div class="body">
+
+      <header class="hero">
+        <div class="wrap hero-grid">
+          <div>
+            <p class="kicker">Observing clipboard specimen&hellip;</p>
+            <h1 class="word">CLIPBOROSCOPE<span class="ext">.EXE</span></h1>
+            <p class="subtitle">Clipboard Observation Instrument &middot; for Windows</p>
+            <p class="tagline">A modern clipboard analysis instrument. No, seriously.</p>
+            <p class="lead">Every format sitting on your clipboard &mdash; text, images, HTML, rich text,
+              file drops, audio, raw bytes &mdash; rendered live, with per-format zoom. The dignified
+              replacement for the old Windows <code>clipbrd.exe</code>.</p>
+            <div class="cta">
+              <a class="btn" href="#download">Download for Windows <span class="arw">&darr;</span></a>
+              <span class="fineprint">Free &middot; closed source &middot; no telemetry &middot; Windows 10/11 &middot; 64-bit</span>
+            </div>
+          </div>
+          <div>
+            <div class="jar-frame">
+              <div class="jar">
+                <img src="assets/jar.png" alt="The Clipboroscope specimen: a googly-eyed clipboard creature holding a magnifying glass">
+                <span class="placard">Specimen &middot; do not tap</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="wrap">
+          <div class="caution">
+            <div class="run">
+              <span class="wi">!</span>
+              <span><b>Do not tap on the glass</b></span>
+              <span><b>Do not feed the formats</b></span>
+              <span><b>Do not tap on the glass</b></span>
+              <span><b>Do not feed the formats</b></span>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <section>
+        <div class="wrap">
+          <fieldset class="group">
+            <legend class="legend">What&rsquo;s on the glass</legend>
+            <h2>It shows you everything. Then it lets you zoom in.</h2>
+            <p class="section-lead">Most clipboard viewers show you one flavour of what you copied.
+              Clipboroscope shows you <em>all</em> of them at once, renders the ones it understands,
+              and refreshes the instant the clipboard changes.</p>
+            <div class="feat">
+              <div class="card"><span class="ico">&#9636;</span><h3>Every format at once</h3><p>Text, Unicode, images, HTML, rich text, file drops, audio, and raw bytes &mdash; the full list on the clipboard right now.</p></div>
+              <div class="card"><span class="ico">&#8853;</span><h3>Per-format zoom</h3><p>Snaps to round levels, remembered separately for text-like formats and images. Audio gets its own time-span zoom.</p></div>
+              <div class="card"><span class="ico">&#8635;</span><h3>Live refresh</h3><p>Watches the clipboard and re-reads the moment it changes. What you see is always what&rsquo;s on the glass.</p></div>
+              <div class="card"><span class="ico">&#9673;</span><h3>Plumbing, tagged</h3><p>The OLE bookkeeping formats browsers and Office leave behind are marked as plumbing, so they never hijack the view.</p></div>
+              <div class="card"><span class="ico">&#9670;</span><h3>DPI-aware</h3><p>Sharp on every monitor and scale factor. Built for Windows 11, dressed like it escaped from 1998.</p></div>
+              <div class="card"><span class="ico">&#9113;</span><h3>Replaces clipbrd.exe</h3><p>The clipboard viewer Windows quietly retired, brought back and taken seriously &mdash; for once.</p></div>
+            </div>
+          </fieldset>
+        </div>
+      </section>
+
+      <section>
+        <div class="wrap">
+          <fieldset class="group">
+            <legend class="legend">Exhibit A</legend>
+            <h2>Specimens under the glass</h2>
+            <p class="section-lead">The innocent thing you copied &mdash; and the baggage it secretly carries. Mounted one at a time.<span class="rotate-note">Rotating specimen case</span></p>
+            <div class="case" id="specimenCase">
+              <div class="case-viewport">
+                <div class="case-stage" id="caseStage"></div>
+                <div class="case-controls">
+                  <span class="case-status" id="caseStatus">Auto</span>
+                  <button class="case-toggle" id="caseToggle" type="button" aria-label="Pause">&#10074;&#10074;</button>
+                </div>
+                <p class="cap" id="caseCap">&nbsp;</p>
+              </div>
+              <div class="case-rail" id="caseDots"></div>
+            </div>
+          </fieldset>
+        </div>
+      </section>
+
+      <section>
+        <div class="wrap">
+          <div class="evidence">
+            <fieldset class="group">
+              <legend class="legend">Provenance <span class="stamp">Unverifiable</span></legend>
+              <p>It has the unmistakable air of <b>weird shareware from 1998</b>. It looks like it was
+                recovered from a <b>forgotten FTP server around 2002</b>. It runs <b>flawlessly on Windows 11</b>.</p>
+              <p>It is, in fact, a brand-new Rust program. None of these facts are reconcilable.
+                That is the joke, and it is load-bearing.</p>
+              <p style="font-size:12px">Name chosen during a moment of severe judgment impairment.</p>
+            </fieldset>
+            <fieldset class="group">
+              <legend class="legend">Built with</legend>
+              <ul class="built">
+                <li><span class="ck">&#10003;</span> Rust</li>
+                <li><span class="ck">&#10003;</span> Tauri + SolidJS</li>
+                <li><span class="ck">&#10003;</span> Windows clipboard APIs</li>
+                <li class="q"><span class="ck">&#10003;</span> Questionable naming decisions</li>
+              </ul>
+            </fieldset>
+          </div>
+        </div>
+      </section>
+
+      <section id="download">
+        <div class="wrap">
+          <fieldset class="group dl-card">
+            <legend class="legend">Get the instrument</legend>
+            <h2>Free. Closed source. Yours to point at anything.</h2>
+            <p>A single signed installer for Windows 10 and 11, 64-bit. No account, no telemetry, no vault to feed.</p>
+            <div class="dl-btns">
+              <a class="btn" href="https://github.com/leifclaesson/clipboroscope/releases/download/v0.1.10/CLIPBOROSCOPE.EXE_0.1.10_x64-setup.exe">Download for Windows <span class="arw">&darr;</span></a>
+              <a class="btn ghost" href="https://github.com/leifclaesson/clipboroscope/releases/tag/v0.1.10">Release notes</a>
+            </div>
+            <p class="fineprint" style="margin-top:16px">Version 0.1.10, 2.1&#160;MB. Free to use, personal and commercial. Closed source. <a href="LICENSE.txt">Full terms</a>.</p>
+          </fieldset>
+        </div>
+      </section>
+
+      <section>
+        <div class="wrap">
+          <fieldset class="group">
+            <legend class="legend">The workshop</legend>
+            <h2>Part of a small family of sharp little tools</h2>
+            <p class="section-lead">Free to use. Made because they needed to exist.</p>
+            <div class="fam-grid">
+              <a class="fam" href="https://leifclaesson.github.io/glance/"><div class="n">Glance</div><div class="t">It only ever looks.</div></a>
+              <span class="fam soon"><div class="n">ENHANCE!!</div><div class="t">Zoom, and enhance. Honestly.</div><span class="badge">Soon</span></span>
+              <span class="fam soon"><div class="n">Pegged</div><div class="t">Answers only to you.</div><span class="badge">Soon</span></span>
+              <span class="fam soon"><div class="n">Vitrine</div><div class="t">One page, on display.</div><span class="badge">Soon</span></span>
+              <span class="fam cur"><span class="badge">You are here</span><div class="n">Clipboroscope</div><div class="t">Do not tap on the glass.</div></span>
+            </div>
+          </fieldset>
+        </div>
+      </section>
+
+      <footer class="legal">
+        <span>&copy; 2026 Leif Claesson &middot; Free to use &middot; Closed source &middot; No warranty</span>
+        <span>CLIPBOROSCOPE.EXE &middot; built in Rust</span>
+        <span class="grip" aria-hidden="true"></span>
+      </footer>
+
+    </div><!-- /body -->
+  </div><!-- /window -->
+
+<script>
+(function(){
+  var S = [
+    {n:"001", render:"assets/specimen-001a.png", reveal:"assets/specimen-001b.png", cap:'Specimen 001 — ‘hello’, and its 340\xa0KB of luggage.'},
+    {n:"002", render:"assets/specimen-002a.png", reveal:"assets/specimen-002b.png", cap:'Specimen 002 — what you’re one Ctrl+V away from sharing.'},
+    {n:"003", render:"assets/specimen-003a.png", reveal:"assets/specimen-003b.png", cap:'Specimen 003 — one number, twenty-nine opinions.'},
+    {n:"004", render:"assets/specimen-004a.png", reveal:"assets/specimen-004b.png", cap:'Specimen 004 — why your email suddenly spoke Calibri.'},
+    {n:"005", render:"assets/specimen-005a.png", reveal:"assets/specimen-005b.png", cap:'Specimen 005 — you didn’t copy the file. You copied where it lives.'},
+    {n:"006", render:"assets/specimen-006a.png", reveal:"assets/specimen-006b.png", cap:'Specimen 006 — nothing. The instrument waits patiently.'},
+    {n:"007", render:"assets/specimen-007a.png", reveal:"assets/specimen-007b.png", cap:'Specimen 007 — the same picture, thrice, because Windows.'},
+    {n:"008", render:"assets/specimen-008a.png", reveal:"assets/specimen-008b.png", cap:'Specimen 008 — four minutes of audio, down to a single 335\xa0ms sliver.'},
+  ];
+  var live = S.filter(function(s){ return s.render || s.reveal; });
+  var stage = document.getElementById("caseStage");
+  var dotsEl = document.getElementById("caseDots");
+  var capEl = document.getElementById("caseCap");
+  var caseEl = document.getElementById("specimenCase");
+  if(!stage || !live.length){ return; }
+
+  var toggleBtn = document.getElementById("caseToggle");
+  var statusEl = document.getElementById("caseStatus");
+  var PAUSE_ICON = "❚❚", PLAY_ICON = "▶";
+
+  var slides = [], railDots = [];
+  live.forEach(function(s, i){
+    var slide = document.createElement("div"); slide.className = "case-slide";
+    var layers = {};
+    ["reveal","render"].forEach(function(kind){
+      if(s[kind]){
+        var im = document.createElement("img");
+        im.src = s[kind]; im.decoding = "async";
+        im.alt = "Clipboroscope specimen " + s.n + " — " + (kind === "render" ? "what it renders as" : "what is really there");
+        im.className = "case-layer " + kind;
+        slide.appendChild(im); layers[kind] = im;
+      }
+    });
+    var badge = document.createElement("span"); badge.className = "case-badge";
+    slide.appendChild(badge);
+    stage.appendChild(slide);
+    slides.push({ el: slide, layers: layers, badge: badge, spec: s, both: !!(layers.render && layers.reveal) });
+
+    // one rail group per pair; a dot per present face (render on top, reveal below)
+    var group = document.createElement("div"); group.className = "rail-group";
+    ["render","reveal"].forEach(function(kind){
+      if(!s[kind]){ return; }
+      var label = "Specimen " + s.n + " — " + (kind === "render" ? "what it renders as" : "what is really there");
+      var dot = document.createElement("button"); dot.type = "button"; dot.className = "case-dot " + kind;
+      dot.title = label; dot.setAttribute("aria-label", label);
+      dot.addEventListener("click", function(){ jumpTo(i, kind); });
+      group.appendChild(dot);
+      railDots.push({ el: dot, slide: i, kind: kind });
+    });
+    dotsEl.appendChild(group);
+  });
+
+  var tick = null, elapsed = 0, lastNow = 0;
+  var userPaused = false, hoverPaused = false;   // manual toggle vs transient hover-peek
+  var curSlide = -1, curKind = null;
+
+  function running(){ return !userPaused && !hoverPaused && !document.hidden; }
+
+  function updateControls(){
+    var stopped = !running();
+    toggleBtn.innerHTML = userPaused ? PLAY_ICON : PAUSE_ICON;
+    toggleBtn.setAttribute("aria-label", userPaused ? "Play" : "Pause");
+    statusEl.textContent = stopped ? "Paused" : "Auto";
+    statusEl.classList.toggle("paused", stopped);
+  }
+
+  function face(sl, kind){
+    if(sl.layers.render) sl.layers.render.style.opacity = (kind === "render") ? "1" : "0";
+    if(sl.layers.reveal) sl.layers.reveal.style.opacity = (kind === "reveal") ? "1" : "0";
+    if(sl.both){
+      sl.badge.textContent = (kind === "render") ? "What it renders as" : "What is really there";
+      sl.badge.className = "case-badge " + kind;
+      sl.badge.style.opacity = "1";
+    } else {
+      sl.badge.style.opacity = "0";
+    }
+  }
+
+  function steps(sl){
+    var out = [];
+    if(sl.both){
+      for(var k=0;k<3;k++){ out.push({kind:"render",hold:3000}); out.push({kind:"reveal",hold:3000}); }
+    } else {
+      out.push({ kind: sl.layers.reveal ? "reveal" : "render", hold: 3800 });
+    }
+    return out;
+  }
+
+  // Absolute, elapsed-time timeline across every slide. The carousel is driven by
+  // REAL time (performance.now), not a chain of setTimeouts -- so when a browser
+  // throttles timers in an unfocused / background window (Chromium clamps them
+  // erratically, which stretched the old 3s holds to 10s+), a late tick advances
+  // straight to the face that SHOULD be showing now instead of stalling a full
+  // clamped interval. Self-correcting: worst-case visible lag is one tick
+  // (~200ms focused, ~1s throttled), never the multi-second drift setTimeout gave.
+  // Kept JS-driven (not CSS) because reduced-motion freezes CSS transitions.
+  var timeline = [], total = 0;
+  for(var i=0;i<slides.length;i++){
+    var seq = steps(slides[i]);
+    for(var j=0;j<seq.length;j++){
+      timeline.push({ slide:i, kind:seq[j].kind, start:total, dur:seq[j].hold });
+      total += seq[j].hold;
+    }
+  }
+
+  function segAt(t){
+    var tt = ((t % total) + total) % total;
+    for(var k=0;k<timeline.length;k++){
+      if(tt < timeline[k].start + timeline[k].dur){ return timeline[k]; }
+    }
+    return timeline[timeline.length - 1];
+  }
+
+  function render(){
+    var seg = segAt(elapsed);
+    if(seg.slide !== curSlide){
+      for(var k=0;k<slides.length;k++){
+        slides[k].el.classList.toggle("active", k === seg.slide);
+      }
+      var cap = slides[seg.slide].spec.cap;
+      capEl.style.opacity = "0";
+      window.setTimeout(function(){ capEl.textContent = cap; capEl.style.opacity = "1"; }, 180);
+      curSlide = seg.slide; curKind = null;
+    }
+    if(seg.kind !== curKind){ face(slides[seg.slide], seg.kind); curKind = seg.kind; }
+    // rail: exact face lit; its pair-mate faintly primed
+    for(var d=0;d<railDots.length;d++){
+      var it = railDots[d], here = it.slide === seg.slide;
+      it.el.classList.toggle("on", here && it.kind === seg.kind);
+      it.el.classList.toggle("near", here && it.kind !== seg.kind);
+    }
+  }
+
+  function step(){
+    var now = performance.now();
+    if(running()){ elapsed += (now - lastNow); }
+    lastNow = now;
+    render();
+  }
+
+  // clicking a dot freezes on that exact image (and pauses); Play resumes the cycle
+  function jumpTo(i, kind){
+    for(var k=0;k<timeline.length;k++){
+      if(timeline[k].slide === i && timeline[k].kind === kind){ elapsed = timeline[k].start; break; }
+    }
+    userPaused = true;
+    lastNow = performance.now();
+    render(); updateControls();
+  }
+
+  toggleBtn.addEventListener("click", function(){
+    userPaused = !userPaused; lastNow = performance.now(); updateControls();
+  });
+  caseEl.addEventListener("mouseenter", function(){ hoverPaused = true; lastNow = performance.now(); updateControls(); });
+  caseEl.addEventListener("mouseleave", function(){ hoverPaused = false; lastNow = performance.now(); updateControls(); });
+  document.addEventListener("visibilitychange", function(){ lastNow = performance.now(); updateControls(); });
+
+  lastNow = performance.now();
+  render(); updateControls();
+  tick = window.setInterval(step, 200);
+})();
+</script>
+</body>
+</html>
