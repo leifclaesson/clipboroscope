@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>CLIPBOROSCOPE.EXE &mdash; Clipboard Observation Instrument</title>
+<title>CLIPBOROSCOPE.EXE -- Clipboard Observation Instrument</title>
 <style>
   :root{
     /* ---- Luna (Windows XP default blue) palette ---- */
@@ -98,9 +98,6 @@
   .wrap{padding:0 clamp(14px,3.2vw,30px)}
 
   /* ---- generic XP surfaces ---- */
-  .sunken{ background:#fff;
-    border-top:2px solid var(--sh2); border-left:2px solid var(--sh2);
-    border-right:2px solid var(--hi); border-bottom:2px solid var(--hi); }
   .group{
     border:2px groove var(--face);
     border-radius:2px; margin:0; padding:16px clamp(12px,2.4vw,20px) 18px;
@@ -117,11 +114,6 @@
   .hero-grid{
     display:grid; grid-template-columns:1.15fr .85fr; gap:clamp(20px,4vw,44px);
     align-items:center;
-  }
-  .kicker{
-    display:inline-block; font-size:11px; letter-spacing:.02em;
-    color:#0a3d91; background:#dfe8f7; border:1px solid #9db8e0; border-radius:2px;
-    padding:2px 8px; margin:0 0 14px;
   }
   h1.word{
     font-weight:700; margin:0; font-size:clamp(28px,6vw,54px); line-height:1.02;
@@ -195,8 +187,6 @@
   .caution b{color:#3a3400; font-weight:700}
 
   /* ---- content sections ---- */
-  .eyebrow{display:inline-block; font-size:11px; letter-spacing:.02em; font-weight:700;
-    color:#0a3d91; margin:0 0 8px}
   h2{font-size:clamp(19px,2.8vw,26px); margin:0 0 8px; color:#15294f; letter-spacing:-.01em}
   .section-lead{color:var(--ink-dim); margin:0 0 22px; max-width:62ch; font-size:12.5px}
 
@@ -275,7 +265,7 @@
   /* paired specimen: render <-> reveal toggle */
   .case-layer{ position:absolute; inset:0; width:100%; height:100%; object-fit:contain;
     opacity:0; transition:opacity .55s ease }
-  .case-badge{ position:absolute; left:14px; top:14px; z-index:4;
+  .case-badge{ position:absolute; left:14px; top:5.5%; z-index:4;
     font-size:11px; font-weight:700; letter-spacing:.01em; padding:4px 10px; border-radius:2px;
     border:1px solid var(--amber-ln); background:var(--amber-bg); color:#4a4413; opacity:0;
     box-shadow:1px 1px 2px rgba(0,0,0,.25); transition:opacity .4s ease }
@@ -283,17 +273,15 @@
 
   /* ---- provenance / evidence ---- */
   .evidence{
-    display:grid; grid-template-columns:1.2fr .8fr; gap:clamp(18px,3.5vw,36px); align-items:start;
+    display:grid; grid-template-columns:1fr; gap:clamp(18px,3.5vw,36px); align-items:start;
   }
+  .prov{display:grid; grid-template-columns:1fr 1fr; gap:4px clamp(20px,4vw,40px)}
   .evidence p{color:var(--ink-dim); margin:0 0 12px; font-size:12.5px}
+  .evidence p:last-child{margin-bottom:0}
   .evidence p b{color:#1a1a1a}
   .stamp{ display:inline-block; color:#b12704; border:2px solid #d3654e; transform:rotate(-4deg);
     border-radius:3px; padding:1px 8px; font-size:11px; font-weight:700; letter-spacing:.08em;
     text-transform:uppercase; background:rgba(255,240,236,.6) }
-  .built{list-style:none; margin:0; padding:0; display:grid; gap:9px}
-  .built li{font-size:12.5px; color:#1a1a1a; display:flex; gap:9px; align-items:center}
-  .built li .ck{color:#2f7d24; font-weight:900}
-  .built li.q{color:var(--ink-dim)}
 
   /* ---- family ---- */
   .fam-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(172px,1fr)); gap:12px; margin-top:16px}
@@ -310,8 +298,6 @@
   .fam .t{color:var(--ink-dim); font-size:12px; margin-top:3px}
   .fam .badge{position:absolute; top:11px; right:12px; font-size:10px; color:#fff; font-weight:700;
     background:var(--sel); border-radius:2px; padding:1px 6px; letter-spacing:.02em}
-  span.fam.soon{ opacity:.6; cursor:default }
-  span.fam.soon .badge{background:var(--sh2)}
 
   /* ---- status-bar footer ---- */
   footer.legal{
@@ -333,7 +319,7 @@
   @media (max-width:760px){
     .hero-grid{grid-template-columns:1fr; text-align:left}
     .jar-frame{order:-1; max-width:260px}
-    .evidence{grid-template-columns:1fr}
+    .prov{grid-template-columns:1fr; gap:0}
   }
   /* narrow: rail drops below the stage as a horizontal, two-deep LED band.
      Placed AFTER the base .case-rail rules so equal-specificity source order wins. */
@@ -356,7 +342,7 @@
 
     <div class="titlebar">
       <span class="ico">&#9906;</span>
-      <span class="ttl"><b>CLIPBOROSCOPE.EXE</b> &mdash; Clipboard Observation Instrument</span>
+      <span class="ttl"><b>CLIPBOROSCOPE.EXE</b></span>
       <span class="winbtns">
         <button class="winbtn grey" type="button" aria-label="Minimize" tabindex="-1">&minus;</button>
         <button class="winbtn grey" type="button" aria-label="Maximize" tabindex="-1">&#9633;</button>
@@ -369,13 +355,12 @@
       <header class="hero">
         <div class="wrap hero-grid">
           <div>
-            <p class="kicker">Observing clipboard specimen&hellip;</p>
             <h1 class="word">CLIPBOROSCOPE<span class="ext">.EXE</span></h1>
             <p class="subtitle">Clipboard Observation Instrument &middot; for Windows</p>
             <p class="tagline">A modern clipboard analysis instrument. No, seriously.</p>
-            <p class="lead">Every format sitting on your clipboard &mdash; text, images, HTML, rich text,
-              file drops, audio, raw bytes &mdash; rendered live, with per-format zoom. The dignified
-              replacement for the old Windows <code>clipbrd.exe</code>.</p>
+            <p class="lead">Every format sitting on your clipboard: text, images, HTML, rich text,
+              file drops, audio, raw bytes. All of it rendered live, with per-format zoom. The
+              dignified replacement for the old Windows <code>clipbrd.exe</code>.</p>
             <div class="cta">
               <a class="btn" href="#download">Download for Windows <span class="arw">&darr;</span></a>
               <span class="fineprint">Free &middot; closed source &middot; no telemetry &middot; Windows 10/11 &middot; 64-bit</span>
@@ -397,8 +382,6 @@
               <span class="wi">!</span>
               <span><b>Do not tap on the glass</b></span>
               <span><b>Do not feed the formats</b></span>
-              <span><b>Do not tap on the glass</b></span>
-              <span><b>Do not feed the formats</b></span>
             </div>
           </div>
         </div>
@@ -413,12 +396,12 @@
               Clipboroscope shows you <em>all</em> of them at once, renders the ones it understands,
               and refreshes the instant the clipboard changes.</p>
             <div class="feat">
-              <div class="card"><span class="ico">&#9636;</span><h3>Every format at once</h3><p>Text, Unicode, images, HTML, rich text, file drops, audio, and raw bytes &mdash; the full list on the clipboard right now.</p></div>
+              <div class="card"><span class="ico">&#9636;</span><h3>Every format at once</h3><p>Text, Unicode, images, HTML, rich text, file drops, audio, and raw bytes. The full list on the clipboard right now.</p></div>
               <div class="card"><span class="ico">&#8853;</span><h3>Per-format zoom</h3><p>Snaps to round levels, remembered separately for text-like formats and images. Audio gets its own time-span zoom.</p></div>
               <div class="card"><span class="ico">&#8635;</span><h3>Live refresh</h3><p>Watches the clipboard and re-reads the moment it changes. What you see is always what&rsquo;s on the glass.</p></div>
               <div class="card"><span class="ico">&#9673;</span><h3>Plumbing, tagged</h3><p>The OLE bookkeeping formats browsers and Office leave behind are marked as plumbing, so they never hijack the view.</p></div>
               <div class="card"><span class="ico">&#9670;</span><h3>DPI-aware</h3><p>Sharp on every monitor and scale factor. Built for Windows 11, dressed like it escaped from 1998.</p></div>
-              <div class="card"><span class="ico">&#9113;</span><h3>Replaces clipbrd.exe</h3><p>The clipboard viewer Windows quietly retired, brought back and taken seriously &mdash; for once.</p></div>
+              <div class="card"><span class="ico">&#9113;</span><h3>Replaces clipbrd.exe</h3><p>The clipboard viewer Windows quietly retired, brought back and taken seriously. For once.</p></div>
             </div>
           </fieldset>
         </div>
@@ -429,7 +412,7 @@
           <fieldset class="group">
             <legend class="legend">Exhibit A</legend>
             <h2>Specimens under the glass</h2>
-            <p class="section-lead">The innocent thing you copied &mdash; and the baggage it secretly carries. Mounted one at a time.<span class="rotate-note">Rotating specimen case</span></p>
+            <p class="section-lead">The innocent thing you copied, and the baggage it secretly carries. Mounted one at a time.<span class="rotate-note">Rotating specimen case</span></p>
             <div class="case" id="specimenCase">
               <div class="case-viewport">
                 <div class="case-stage" id="caseStage"></div>
@@ -450,20 +433,15 @@
           <div class="evidence">
             <fieldset class="group">
               <legend class="legend">Provenance <span class="stamp">Unverifiable</span></legend>
-              <p>It has the unmistakable air of <b>weird shareware from 1998</b>. It looks like it was
-                recovered from a <b>forgotten FTP server around 2002</b>. It runs <b>flawlessly on Windows 11</b>.</p>
-              <p>It is, in fact, a brand-new Rust program. None of these facts are reconcilable.
-                That is the joke, and it is load-bearing.</p>
-              <p style="font-size:12px">Name chosen during a moment of severe judgment impairment.</p>
-            </fieldset>
-            <fieldset class="group">
-              <legend class="legend">Built with</legend>
-              <ul class="built">
-                <li><span class="ck">&#10003;</span> Rust</li>
-                <li><span class="ck">&#10003;</span> Tauri + SolidJS</li>
-                <li><span class="ck">&#10003;</span> Windows clipboard APIs</li>
-                <li class="q"><span class="ck">&#10003;</span> Questionable naming decisions</li>
-              </ul>
+              <div class="prov">
+                <p>It has the unmistakable air of <b>weird shareware from 1998</b>. It looks like it was
+                  recovered from a <b>forgotten FTP server around 2002</b>. It runs <b>flawlessly on Windows 11</b>.</p>
+                <div>
+                  <p>It is, in fact, a brand-new program. None of these facts are reconcilable.
+                    That is the joke, and it is load-bearing.</p>
+                  <p style="font-size:12px">Name chosen during a moment of severe judgment impairment.</p>
+                </div>
+              </div>
             </fieldset>
           </div>
         </div>
@@ -504,7 +482,7 @@
 
       <footer class="legal">
         <span>&copy; 2026 Leif Claesson &middot; Free to use &middot; Closed source &middot; No warranty</span>
-        <span>CLIPBOROSCOPE.EXE &middot; built in Rust</span>
+        <span>CLIPBOROSCOPE.EXE</span>
         <span class="grip" aria-hidden="true"></span>
       </footer>
 
@@ -514,14 +492,14 @@
 <script>
 (function(){
   var S = [
-    {n:"001", render:"assets/specimen-001a.png", reveal:"assets/specimen-001b.png", cap:'Specimen 001 — ‘hello’, and its 340\xa0KB of luggage.'},
-    {n:"002", render:"assets/specimen-002a.png", reveal:"assets/specimen-002b.png", cap:'Specimen 002 — what you’re one Ctrl+V away from sharing.'},
-    {n:"003", render:"assets/specimen-003a.png", reveal:"assets/specimen-003b.png", cap:'Specimen 003 — one number, twenty-nine opinions.'},
-    {n:"004", render:"assets/specimen-004a.png", reveal:"assets/specimen-004b.png", cap:'Specimen 004 — why your email suddenly spoke Calibri.'},
-    {n:"005", render:"assets/specimen-005a.png", reveal:"assets/specimen-005b.png", cap:'Specimen 005 — you didn’t copy the file. You copied where it lives.'},
-    {n:"006", render:"assets/specimen-006a.png", reveal:"assets/specimen-006b.png", cap:'Specimen 006 — nothing. The instrument waits patiently.'},
-    {n:"007", render:"assets/specimen-007a.png", reveal:"assets/specimen-007b.png", cap:'Specimen 007 — the same picture, thrice, because Windows.'},
-    {n:"008", render:"assets/specimen-008a.png", reveal:"assets/specimen-008b.png", cap:'Specimen 008 — four minutes of audio, down to a single 335\xa0ms sliver.'},
+    {n:"001", render:"assets/specimen-001a.png", reveal:"assets/specimen-001b.png", cap:'Specimen 001: ‘hello’, and its 340\xa0KB of luggage.'},
+    {n:"002", render:"assets/specimen-002a.png", reveal:"assets/specimen-002b.png", cap:'Specimen 002: what you’re one Ctrl+V away from sharing.'},
+    {n:"003", render:"assets/specimen-003a.png", reveal:"assets/specimen-003b.png", cap:'Specimen 003: one number, twenty-nine opinions.'},
+    {n:"004", render:"assets/specimen-004a.png", reveal:"assets/specimen-004b.png", cap:'Specimen 004: why your email suddenly spoke Calibri.'},
+    {n:"005", render:"assets/specimen-005a.png", reveal:"assets/specimen-005b.png", cap:'Specimen 005: you didn’t copy the file. You copied where it lives.'},
+    {n:"006", render:"assets/specimen-006a.png", reveal:"assets/specimen-006b.png", cap:'Specimen 006: nothing. The instrument waits patiently.'},
+    {n:"007", render:"assets/specimen-007a.png", reveal:"assets/specimen-007b.png", cap:'Specimen 007: the same picture, thrice, because Windows.'},
+    {n:"008", render:"assets/specimen-008a.png", reveal:"assets/specimen-008b.png", cap:'Specimen 008: four minutes of audio, down to a single 335\xa0ms sliver.'},
   ];
   var live = S.filter(function(s){ return s.render || s.reveal; });
   var stage = document.getElementById("caseStage");
@@ -542,7 +520,7 @@
       if(s[kind]){
         var im = document.createElement("img");
         im.src = s[kind]; im.decoding = "async";
-        im.alt = "Clipboroscope specimen " + s.n + " — " + (kind === "render" ? "what it renders as" : "what is really there");
+        im.alt = "Clipboroscope specimen " + s.n + ": " + (kind === "render" ? "what it renders as" : "what is really there");
         im.className = "case-layer " + kind;
         slide.appendChild(im); layers[kind] = im;
       }
@@ -556,7 +534,7 @@
     var group = document.createElement("div"); group.className = "rail-group";
     ["render","reveal"].forEach(function(kind){
       if(!s[kind]){ return; }
-      var label = "Specimen " + s.n + " — " + (kind === "render" ? "what it renders as" : "what is really there");
+      var label = "Specimen " + s.n + ": " + (kind === "render" ? "what it renders as" : "what is really there");
       var dot = document.createElement("button"); dot.type = "button"; dot.className = "case-dot " + kind;
       dot.title = label; dot.setAttribute("aria-label", label);
       dot.addEventListener("click", function(){ jumpTo(i, kind); });
